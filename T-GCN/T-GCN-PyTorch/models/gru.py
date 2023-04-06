@@ -100,6 +100,9 @@ class GRU(nn.Module):
     def add_model_specific_arguments(parent_parser):
         parser = argparse.ArgumentParser(parents=[parent_parser], add_help=False)
         parser.add_argument("--hidden_dim", type=int, default=64)
+        parser.add_argument("--dropout", type=float, default=0)
+        parser.add_argument("--cell_dim", type=int, default=64)
+        parser.add_argument("--layer_2", type=bool, default=False)
         return parser
 
     @property

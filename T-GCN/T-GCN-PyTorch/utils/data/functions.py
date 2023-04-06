@@ -4,6 +4,13 @@ import torch
 
 
 def load_features(feat_path, dtype=np.float32):
+    if feat_path.endswith(".npz"):
+        data = np.load(feat_path)
+        data = data.f.data
+        df_data = pd.DataFrame(data[:,:,0])
+        df_data = df_data.values.tolist()
+        feat = np.array(df_data, dtype=dtype)
+        return feat
     feat_df = pd.read_csv(feat_path)
     feat = np.array(feat_df, dtype=dtype)
     return feat

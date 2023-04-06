@@ -64,6 +64,10 @@ class SupervisedForecastTask(pl.LightningModule):
             return F.mse_loss(inputs, targets)
         if self._loss == "mse_with_regularizer":
             return utils.losses.mse_with_regularizer_loss(inputs, targets, self)
+        if self._loss == "mse_with_regularizer_l1":
+            return utils.losses.mse_with_regularizer_l1_loss(inputs, targets, self)
+        if self._loss == "mse_with_regularizer_entropy":
+            return utils.losses.mse_with_regularizer_entropy_loss(inputs, targets, self)
         raise NameError("Loss not supported:", self._loss)
 
     def training_step(self, batch, batch_idx):

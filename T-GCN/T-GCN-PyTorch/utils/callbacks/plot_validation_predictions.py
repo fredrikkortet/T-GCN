@@ -31,7 +31,7 @@ class PlotValidationPredictionsCallback(BestEpochCallback):
         tensorboard = pl_module.logger.experiment
         for node_idx in range(ground_truth.shape[1]):
             plt.clf()
-            plt.rcParams["font.family"] = "Times New Roman"
+            plt.rcParams["font.family"] = "DejaVu Sans"
             fig = plt.figure(figsize=(7, 2), dpi=300)
             plt.plot(
                 ground_truth[:, node_idx],
@@ -48,6 +48,7 @@ class PlotValidationPredictionsCallback(BestEpochCallback):
             plt.legend(loc="best", fontsize=10)
             plt.xlabel("Time")
             plt.ylabel("Traffic Speed")
+            plt.savefig('out/test_oneday_node_'+ str(node_idx) +'.jpg')
             tensorboard.add_figure(
                 "Prediction result of node " + str(node_idx),
                 fig,
