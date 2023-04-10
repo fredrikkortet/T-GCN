@@ -24,3 +24,9 @@ def mse_with_regularizer_entropy_loss(inputs, targets, model, lamda=1.5e-3):
     reg_loss = lamda * reg_loss
     mse_loss = torch.sum((inputs - targets) ** 2) / (inputs.size(dim=0)*inputs.size(dim=1))
     return mse_loss + reg_loss
+
+def mse_with_regularizer_log_cosh_loss(inputs, targets):
+    reg_loss = 0.0
+    reg_loss = torch.sum(torch.log(torch.cosh((inputs-targets)))) / 2
+    reg_loss = reg_loss
+    return reg_loss

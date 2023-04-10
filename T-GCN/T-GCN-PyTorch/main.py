@@ -15,7 +15,6 @@ DATA_PATHS = {
     "losloop": {"feat": "data/los_speed.csv", "adj": "data/los_adj.csv"},
     "PEMS04": {"feat":"data/pems04.npz","adj":"data/pems04_adj.csv"},
     "PEMS08": {"feat":"data/pems08.npz","adj":"data/pems08_adj.csv"},
-    "METR-LA": {"feat":"data/","adj":"data/"},
 }
 
 
