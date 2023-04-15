@@ -15,6 +15,8 @@ DATA_PATHS = {
     "losloop": {"feat": "data/los_speed.csv", "adj": "data/los_adj.csv"},
     "PEMS04": {"feat":"data/pems04.npz","adj":"data/pems04_adj.csv"},
     "PEMS08": {"feat":"data/pems08.npz","adj":"data/pems08_adj.csv"},
+    "PEMS08ATT": {"feat":"data/pems08.npz","adj":"data/adj_attentionpems08.csv"},
+    "shenzhenatt": {"feat": "data/sz_speed.csv", "adj": "data/sz_taxi_attention.csv"},
 }
 
 
@@ -28,6 +30,8 @@ def get_model(args, dm):
         model = models.LSTM(input_dim=dm.adj.shape[0], hidden_dim=args.hidden_dim, cell_dim=args.cell_dim)
     if args.model_name == "TGCN_LSTM":
         model = models.TGCN_LSTM(adj=dm.adj, hidden_dim=args.hidden_dim, dropout=args.dropout, cell_dim=args.cell_dim, layer_2=args.layer_2)
+    if args.model_name == "TGCN_UGRNN":
+        model = models.TGCN(adj=dm.adj, hidden_dim=args.hidden_dim, dropout=args.dropout,layer_2=args.layer_2)
     if args.model_name == "TGCN":
         model = models.TGCN(adj=dm.adj, hidden_dim=args.hidden_dim, dropout=args.dropout,layer_2=args.layer_2)
     return model
@@ -74,13 +78,13 @@ if __name__ == "__main__":
     parser = pl.Trainer.add_argparse_args(parser)
 
     parser.add_argument(
-        "--data", type=str, help="The name of the dataset", choices=("shenzhen", "losloop","PEMS04","PEMS08",), default="PEMS08"
+        "--data", type=str, help="The name of the dataset", choices=("shenzhen", "losloop","PEMS04","PEMS08","PEMS08ATT","shenzhenatt"), default="PEMS08"
     )
     parser.add_argument(
         "--model_name",
         type=str,
         help="The name of the model for spatiotemporal prediction",
-        choices=("GCN", "GRU", "TGCN","LSTM","TGCN_LSTM"),
+        choices=("GCN", "GRU", "TGCN","LSTM","TGCN_LSTM","TGCN_UGRNN"),
         default="GCN",
     )
     parser.add_argument(

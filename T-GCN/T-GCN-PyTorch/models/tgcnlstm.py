@@ -97,7 +97,7 @@ class TGCNCell(nn.Module):
         cell = f * cell + i * c
         
         new_hidden_state = o * torch.tanh(cell)
-        
+        print("h",new_hidden_state.shape)
         return new_hidden_state, new_hidden_state, cell
 
     @property
@@ -114,6 +114,7 @@ class TGCN_LSTM(nn.Module):
         self._layer_2 = layer_2
         self.register_buffer("adj", torch.FloatTensor(adj))
         self.tgcn_cell = TGCNCell(self.adj, self._input_dim, self._hidden_dim, self._cell_dim)
+        self.tgcn_cell_2 = TGCNCell(self.adj, self._input_dim*self._cell_dim, self._hidden_dim, self._cell_dim)
         self.dropout = dropout
         self.dropout_layer = nn.Dropout(self.dropout)
 
@@ -123,16 +124,26 @@ class TGCN_LSTM(nn.Module):
         hidden_state = torch.zeros(batch_size, num_nodes * self._hidden_dim).type_as(
             inputs
         )
+        
         cell_state = torch.zeros(batch_size, num_nodes * self._hidden_dim).type_as(
             inputs
         )
+        if self._layer_2:
+            hidden_state_2 = torch.zeros(batch_size, num_nodes * self._hidden_dim).type_as(
+                inputs
+            )
+            cell_state_2 = torch.zeros(batch_size, num_nodes * self._hidden_dim).type_as(
+                inputs
+            )
         output = None
         for i in range(seq_len):
             hidden_state = self.dropout_layer(hidden_state)
-            output, hidden_state, cell_state = self.tgcn_cell(inputs[:, i, :], hidden_state,cell_state)
-            if self._layer_2:
-                output, hidden_state , cell_state = self.tgcn_cell(inputs[:, i, :], hidden_state,cell_state)
+                                              
+            output, hidden_state, cell_state = self.tgcn_cell(inputs[:, i, :], hidden_state, cell_state)
             
+                                              
+            if self._layer_2:
+                output, hidden_state_2 , cell_state_2 = self.tgcn_cell_2(output, hidden_state_2, cell_state_2) 
             output = output.reshape((batch_size, num_nodes, self._hidden_dim))
         return output
 

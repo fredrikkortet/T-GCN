@@ -3,6 +3,18 @@ import torch
 import torch.nn as nn
 from utils.graph_conv import calculate_laplacian_with_self_loop
 
+def svd_low_rank_approximation(matrix):
+    # Perform SVD on the matrix
+    k=-21
+    u, s, v = torch.svd(matrix)
+    
+    # Truncate the singular values and matrices to rank k
+    s_k = s[:k]
+    u_k = u[:, :k]
+    v_k = v[:, :k]
+    
+    
+    return u_k.mm(torch.diag(s_k)),v_k.t()
 
 class TGCNGraphConvolution(nn.Module):
     def __init__(self, adj, num_gru_units: int, output_dim: int, bias: float = 0.0):
@@ -13,6 +25,15 @@ class TGCNGraphConvolution(nn.Module):
         self.register_buffer(
             "laplacian", calculate_laplacian_with_self_loop(torch.FloatTensor(adj))
         )
+        ## SVD
+        self.u_k,self.v_k = svd_low_rank_approximation(self.laplacian)
+        #self.attention_linear = nn.Linear(207,207)
+        #self.softmax = nn.Softmax(dim=-1)
+        
+        #self.attention = self.attention_linear(self.laplacian)
+        #self.attention_weights = self.softmax(self.attention)
+        #self.value = self.laplacian.mm(self.attention_weights)
+        
         self.weights = nn.Parameter(
             torch.FloatTensor(self._num_gru_units + 1, self._output_dim)
         )
@@ -40,7 +61,12 @@ class TGCNGraphConvolution(nn.Module):
             (num_nodes, (self._num_gru_units + 1) * batch_size)
         )
         # A[x, h] (num_nodes, (num_gru_units + 1) * batch_size)
-        a_times_concat = self.laplacian @ concatenation
+        
+        #a_times_concat = self.laplacian @ concatenation
+        ## Attention
+        #a_times_concat = self.value @ concatenation
+        ## SVD
+        a_times_concat = self.u_k @ self.v_k @ concatenation
         # A[x, h] (num_nodes, num_gru_units + 1, batch_size)
         a_times_concat = a_times_concat.reshape(
             (num_nodes, self._num_gru_units + 1, batch_size)
