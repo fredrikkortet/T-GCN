@@ -2,7 +2,7 @@ import argparse
 import torch
 import torch.nn as nn
 from utils.graph_conv import calculate_laplacian_with_self_loop
-
+from utils.graph_conv_att import get_attention_adj_matrix
 
 class TGCNGraphConvolution(nn.Module):
     def __init__(self, adj, num_lstm_units: int, output_dim: int, bias: float = 0.0):

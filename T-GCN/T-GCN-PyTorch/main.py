@@ -17,6 +17,7 @@ DATA_PATHS = {
     "PEMS08": {"feat":"data/pems08.npz","adj":"data/pems08_adj.csv"},
     "PEMS08ATT": {"feat":"data/pems08.npz","adj":"data/adj_attentionpems08.csv"},
     "shenzhenatt": {"feat": "data/sz_speed.csv", "adj": "data/sz_taxi_attention.csv"},
+    "losloopatt": {"feat": "data/los_speed.csv", "adj": "data/losslopp_adj_attention.csv"},
 }
 
 
@@ -31,9 +32,9 @@ def get_model(args, dm):
     if args.model_name == "TGCN_LSTM":
         model = models.TGCN_LSTM(adj=dm.adj, hidden_dim=args.hidden_dim, dropout=args.dropout, cell_dim=args.cell_dim, layer_2=args.layer_2)
     if args.model_name == "TGCN_UGRNN":
-        model = models.TGCN(adj=dm.adj, hidden_dim=args.hidden_dim, dropout=args.dropout,layer_2=args.layer_2)
+        model = models.TGCN(adj=dm.adj, hidden_dim=args.hidden_dim, dropout=args.dropout, layer_2=args.layer_2)
     if args.model_name == "TGCN":
-        model = models.TGCN(adj=dm.adj, hidden_dim=args.hidden_dim, dropout=args.dropout,layer_2=args.layer_2)
+        model = models.TGCN(adj=dm.adj, hidden_dim=args.hidden_dim, dropout=args.dropout, layer_2=args.layer_2, self_attention=args.self_attention)
     return model
 
 
@@ -78,7 +79,7 @@ if __name__ == "__main__":
     parser = pl.Trainer.add_argparse_args(parser)
 
     parser.add_argument(
-        "--data", type=str, help="The name of the dataset", choices=("shenzhen", "losloop","PEMS04","PEMS08","PEMS08ATT","shenzhenatt"), default="PEMS08"
+        "--data", type=str, help="The name of the dataset", choices=("shenzhen", "losloop","PEMS04","PEMS08","PEMS08ATT","shenzhenatt","losloopatt"), default="PEMS08"
     )
     parser.add_argument(
         "--model_name",
