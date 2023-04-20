@@ -15,6 +15,7 @@ class SpatioTemporalCSVDataModule(pl.LightningDataModule):
         pre_len: int = 3,
         split_ratio: float = 0.8,
         normalize: bool = True,
+        self_attention: int = 0,
         **kwargs
     ):
         super(SpatioTemporalCSVDataModule, self).__init__()
@@ -25,13 +26,15 @@ class SpatioTemporalCSVDataModule(pl.LightningDataModule):
         self.pre_len = pre_len
         self.split_ratio = split_ratio
         self.normalize = normalize
+        self.self_attention = self_attention
         self._feat = utils.data.functions.load_features(self._feat_path)
         self._feat_max_val = np.max(self._feat)
-        self._adj = utils.data.functions.load_adjacency_matrix(self._adj_path)
+        self._adj = utils.data.functions.load_adjacency_matrix(self._adj_path,self.self_attention)
 
     @staticmethod
     def add_data_specific_arguments(parent_parser):
         parser = argparse.ArgumentParser(parents=[parent_parser], add_help=False)
+        parser.add_argument("--self_attention", type=int, default=0)
         parser.add_argument("--batch_size", type=int, default=32)
         parser.add_argument("--seq_len", type=int, default=12)
         parser.add_argument("--pre_len", type=int, default=3)

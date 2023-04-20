@@ -2,7 +2,6 @@ import argparse
 import torch
 import torch.nn as nn
 from utils.graph_conv import calculate_laplacian_with_self_loop
-from utils.graph_conv_att import get_attention_adj_matrix
 
 def svd_low_rank_approximation(matrix):
     # Perform SVD on the matrix
@@ -18,22 +17,13 @@ def svd_low_rank_approximation(matrix):
     return u_k.mm(torch.diag(s_k)),v_k.t()
 
 class TGCNGraphConvolution(nn.Module):
-    def __init__(self, adj, num_gru_units: int, output_dim: int,self_attention: bool, bias: float = 0.0):
+    def __init__(self, adj, num_gru_units: int, output_dim: int, bias: float = 0.0):
         super(TGCNGraphConvolution, self).__init__()
         self._num_gru_units = num_gru_units
         self._output_dim = output_dim
         self._bias_init_value = bias
-        self._self_attention = self_attention
-        if self._self_attention: 
-            # Self attention
-            print(self._self_attention)
-            self.register_buffer(
-                "laplacian", get_attention_adj_matrix(adj)
-            )
-        else:
             # Only laplacian
-            print("Im not here")
-            self.register_buffer(
+        self.register_buffer(
                 "laplacian", calculate_laplacian_with_self_loop(torch.FloatTensor(adj))
             )
         ## SVD
@@ -99,17 +89,16 @@ class TGCNGraphConvolution(nn.Module):
 
 
 class TGCNCell(nn.Module):
-    def __init__(self, adj, input_dim: int, hidden_dim: int, self_attention: bool,):
+    def __init__(self, adj, input_dim: int, hidden_dim: int,):
         super(TGCNCell, self).__init__()
         self._input_dim = input_dim
         self._hidden_dim = hidden_dim
-        self._self_attention = self_attention
         self.register_buffer("adj", torch.FloatTensor(adj))
         self.graph_conv1 = TGCNGraphConvolution(
-                self.adj, self._hidden_dim, self._hidden_dim * 2, self._self_attention, bias=1.0
+                self.adj, self._hidden_dim, self._hidden_dim * 2, bias=1.0
         )
         self.graph_conv2 = TGCNGraphConvolution(
-            self.adj, self._hidden_dim, self._hidden_dim, self._self_attention
+            self.adj, self._hidden_dim, self._hidden_dim,
         )
 
     def forward(self, inputs, hidden_state):
@@ -133,14 +122,13 @@ class TGCNCell(nn.Module):
 
 
 class TGCN(nn.Module):
-    def __init__(self, adj, hidden_dim: int,dropout: float, layer_2: bool, self_attention: bool, **kwargs):
+    def __init__(self, adj, hidden_dim: int,dropout: float, layer_2: int, **kwargs):
         super(TGCN, self).__init__()
         self._input_dim = adj.shape[0]
         self._hidden_dim = hidden_dim
         self._layer_2 = layer_2
-        self._self_attention = self_attention
         self.register_buffer("adj", torch.FloatTensor(adj))
-        self.tgcn_cell = TGCNCell(self.adj, self._input_dim, self._hidden_dim, self._self_attention)
+        self.tgcn_cell = TGCNCell(self.adj, self._input_dim, self._hidden_dim)
         self.dropout = dropout
         self.dropout_layer = nn.Dropout(self.dropout)
 
@@ -154,7 +142,7 @@ class TGCN(nn.Module):
         for i in range(seq_len):
             hidden_state = self.dropout_layer(hidden_state)
             output, hidden_state = self.tgcn_cell(inputs[:, i, :], hidden_state)
-            if self._layer_2:
+            if self._layer_2==1:
                 output, hidden_state = self.tgcn_cell(inputs[:, i, :], hidden_state)
             
             output = output.reshape((batch_size, num_nodes, self._hidden_dim))
@@ -163,11 +151,10 @@ class TGCN(nn.Module):
     @staticmethod
     def add_model_specific_arguments(parent_parser):
         parser = argparse.ArgumentParser(parents=[parent_parser], add_help=False)
-        parser.add_argument("--self_attention", type=bool, default=False)
         parser.add_argument("--hidden_dim", type=int, default=64)
         parser.add_argument("--dropout", type=float, default=0)
         parser.add_argument("--cell_dim", type=int, default=64)
-        parser.add_argument("--layer_2", type=bool, default=False)
+        parser.add_argument("--layer_2", type=int, default=0)
         return parser
 
     @property
