@@ -21,7 +21,6 @@ def load_adjacency_matrix(adj_path,self_attention, dtype=np.float32):
     adj_df = pd.read_csv(adj_path, header=None)
     adj = np.array(adj_df, dtype=dtype)
     if self_attention == 1:
-        print("fuck william och allt annat")
         adj=get_attention_adj_matrix(adj)
     return adj
 
