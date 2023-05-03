@@ -18,9 +18,23 @@ def load_sz_data(dataset):
 def load_los_data(dataset):
     los_adj = pd.read_csv(r'data/los_adj.csv',header=None)
     adj = np.mat(los_adj)
+    #adj = svd_low_rank_approximation(adj)
     los_tf = pd.read_csv(r'data/los_speed.csv')
     return los_tf, adj
 
+def svd_low_rank_approximation(matrix):
+    # Perform SVD on the matrix
+    k=1
+    u, s, v_adj = np.linalg.svd(matrix, full_matrices=False)
+
+    
+    # Truncate the singular values and matrices to rank k
+    s = s[:k]
+    u = u[:, :k]
+    v_adj = v_adj[:k, :]
+    
+    
+    return np.dot(u, np.dot(np.diag(s), v_adj))
 
 def preprocess_data(data, time_len, rate, seq_len, pre_len):
     train_size = int(time_len * rate)

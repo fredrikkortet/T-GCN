@@ -12,7 +12,7 @@ import utils.logging
 
 DATA_PATHS = {
     "shenzhen": {"feat": "data/sz_speed.csv", "adj": "data/sz_adj.csv"},
-    "losloop": {"feat": "data/los_speed.csv", "adj": "data/los_adj.csv"},
+    "losloop": {"feat": "data/los_speed.csv", "adj": "data/losloop_new.csv"},
     "PEMS04": {"feat":"data/pems04.npz","adj":"data/pems04_adj.csv"},
     "PEMS08": {"feat":"data/pems08.npz","adj":"data/pems08_adj.csv"},
     "PEMS08ATT": {"feat":"data/pems08.npz","adj":"data/adj_attentionpems08.csv"},

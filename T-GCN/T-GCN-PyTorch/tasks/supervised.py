@@ -6,6 +6,7 @@ import pytorch_lightning as pl
 import torchmetrics
 import utils.metrics
 import utils.losses
+import matplotlib.pyplot as plt
 
 
 class SupervisedForecastTask(pl.LightningModule):
@@ -34,6 +35,7 @@ class SupervisedForecastTask(pl.LightningModule):
         )
         self._loss = loss
         self.feat_max_val = feat_max_val
+        self.loss_list = list()
 
     def forward(self, x):
         # (batch_size, seq_len, num_nodes)
@@ -97,6 +99,12 @@ class SupervisedForecastTask(pl.LightningModule):
             "ExplainedVar": explained_variance,
         }
         self.log_dict(metrics)
+        self.loss_list.append(loss)
+        plt.plot(self.loss_list)
+        plt.title("T-GCN with Dynamic Adjacency Matrix")
+        plt.xlabel("Epochs")
+        plt.ylabel("Loss value")
+        plt.savefig('out/losssssssssssssssssss.png')
         return predictions.reshape(batch[1].size()), y.reshape(batch[1].size())
 
     def test_step(self, batch, batch_idx):

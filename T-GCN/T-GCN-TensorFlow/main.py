@@ -20,7 +20,7 @@ time_start = time.time()
 flags = tf.app.flags
 FLAGS = flags.FLAGS
 flags.DEFINE_float('learning_rate', 0.001, 'Initial learning rate.')
-flags.DEFINE_integer('training_epoch', 1, 'Number of epochs to train.')
+flags.DEFINE_integer('training_epoch', 50, 'Number of epochs to train.')
 flags.DEFINE_integer('gru_units', 64, 'hidden units of gru.')
 flags.DEFINE_integer('seq_len',12 , '  time length of inputs.')
 flags.DEFINE_integer('pre_len', 3, 'time length of prediction.')
@@ -124,7 +124,6 @@ def evaluation(a,b):
     var = 1-(np.var(a-b))/np.var(a)
     return rmse, mae, 1-F_norm, r2, var
  
-   
 x_axe,batch_loss,batch_rmse,batch_pred = [], [], [], []
 test_loss,test_rmse,test_mae,test_acc,test_r2,test_var,test_pred = [],[],[],[],[],[],[]
   
@@ -175,8 +174,8 @@ index = test_rmse.index(np.min(test_rmse))
 test_result = test_pred[index]
 var = pd.DataFrame(test_result)
 var.to_csv(path+'/test_result.csv',index = False,header = False)
-#plot_result(test_result,test_label1,path)
-#plot_error(train_rmse,train_loss,test_rmse,test_acc,test_mae,path)
+plot_result(test_result,test_label1,path)
+plot_error(train_rmse,train_loss,test_rmse,test_acc,test_mae,path)
 
 print('min_rmse:%r'%(np.min(test_rmse)),
       'min_mae:%r'%(test_mae[index]),

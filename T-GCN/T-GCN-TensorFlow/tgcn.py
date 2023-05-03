@@ -64,12 +64,38 @@ class tgcnCell(RNNCell):
             x = tf.reshape(x1, shape=[self._nodes, input_size,-1])
             x = tf.transpose(x,perm=[2,0,1])
             x = tf.reshape(x, shape=[-1, input_size])
+            
+            weights_pre = tf.get_variable(
+                'weights_pre', [input_size, output_size], initializer=tf.contrib.layers.xavier_initializer())
+            x = tf.matmul(x, weights_pre)  # (batch_size * self._nodes, output_size)
+            biases_pre = tf.get_variable(
+                "biases_pre", [output_size], initializer=tf.constant_initializer(bias, dtype=tf.float32))
+            x = tf.nn.bias_add(x, biases_pre)
+            x = tf.nn.tanh(x)
+            
+            weights_pre1 = tf.get_variable(
+                'weights_pre1', [output_size, output_size], initializer=tf.contrib.layers.xavier_initializer())
+            x = tf.matmul(x, weights_pre1)  # (batch_size * self._nodes, output_size)
+            biases_pre1 = tf.get_variable(
+                "biases_pre1", [output_size], initializer=tf.constant_initializer(bias, dtype=tf.float32))
+            x = tf.nn.bias_add(x, biases_pre1)
+            
+            weights = tf.get_variable(
+                'weights', [output_size, output_size], initializer=tf.contrib.layers.xavier_initializer())
+            x = tf.matmul(x, weights)  # (batch_size * self._nodes, output_size)
+            biases = tf.get_variable(
+                "biases", [output_size], initializer=tf.constant_initializer(bias, dtype=tf.float32))
+            x = tf.nn.bias_add(x, biases)
+            
+            ## here is the old
+            """
             weights = tf.get_variable(
                 'weights', [input_size, output_size], initializer=tf.contrib.layers.xavier_initializer())
             x = tf.matmul(x, weights)  # (batch_size * self._nodes, output_size)
             biases = tf.get_variable(
                 "biases", [output_size], initializer=tf.constant_initializer(bias, dtype=tf.float32))
             x = tf.nn.bias_add(x, biases)
+            """
             x = tf.reshape(x, shape=[-1, self._nodes, output_size])
             x = tf.reshape(x, shape=[-1, self._nodes * output_size])
         return x

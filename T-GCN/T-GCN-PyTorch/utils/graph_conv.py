@@ -6,7 +6,7 @@ from torch.nn.functional import normalize
 def calculate_laplacian_with_self_loop(matrix):
     matrix = matrix + torch.eye(matrix.size(0))
     row_sum = matrix.sum(1)
-    d_inv_sqrt = torch.pow(row_sum, -0.5).flatten()
+    d_inv_sqrt = torch.pow(row_sum, -0.8).flatten()
     d_inv_sqrt[torch.isinf(d_inv_sqrt)] = 0.0
     d_mat_inv_sqrt = torch.diag(d_inv_sqrt)
     normalized_laplacian = (
@@ -14,3 +14,10 @@ def calculate_laplacian_with_self_loop(matrix):
     )
     return normalized_laplacian
 
+def calculate_symmetric_normalized_laplacian(matrix):
+    matrix = matrix + torch.eye(matrix.size(0))
+    row_sum = matrix.sum(1)
+    d_inv_sqrt = torch.pow(row_sum, -0.8).flatten()
+    d_mat_inv_sqrt = torch.diag(d_inv_sqrt)
+    normalized_laplacian = d_mat_inv_sqrt @ matrix @ d_mat_inv_sqrt
+    return normalized_laplacian

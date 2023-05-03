@@ -22,9 +22,11 @@ def sparse_to_tuple(mx):
     return tf.sparse_reorder(L) 
     
 def calculate_laplacian(adj, lambda_max=1):  
-    adj = normalized_adj(adj + sp.eye(adj.shape[0]))
+    adj = normalized_adj(adj + np.eye(adj.shape[0]))
     adj = sp.csr_matrix(adj)
     adj = adj.astype(np.float32)
+    
+
     return sparse_to_tuple(adj)
     
 def weight_variable_glorot(input_dim, output_dim, name=""):
