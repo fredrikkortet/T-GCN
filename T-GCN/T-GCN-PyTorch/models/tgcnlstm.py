@@ -106,17 +106,16 @@ class TGCNCell(nn.Module):
 
 
 class TGCN_LSTM(nn.Module):
-    def __init__(self, adj, hidden_dim: int,dropout: float, cell_dim: int, layer_2: bool, **kwargs):
+    def __init__(self, adj, hidden_dim: int,dropout: float, cell_dim: int, **kwargs):
         super(TGCN_LSTM, self).__init__()
         self._input_dim = adj.shape[0]
         self._hidden_dim = hidden_dim
         self._cell_dim = cell_dim
-        self._layer_2 = layer_2
         self.register_buffer("adj", torch.FloatTensor(adj))
         self.tgcn_cell = TGCNCell(self.adj, self._input_dim, self._hidden_dim, self._cell_dim)
         self.tgcn_cell_2 = TGCNCell(self.adj, self._input_dim*self._cell_dim, self._hidden_dim, self._cell_dim)
-        self.dropout = dropout
-        self.dropout_layer = nn.Dropout(self.dropout)
+        self._dropout = dropout
+        self.dropout_layer = nn.Dropout(self._dropout)
 
     def forward(self, inputs):
         batch_size, seq_len, num_nodes = inputs.shape
@@ -128,22 +127,12 @@ class TGCN_LSTM(nn.Module):
         cell_state = torch.zeros(batch_size, num_nodes * self._hidden_dim).type_as(
             inputs
         )
-        if self._layer_2:
-            hidden_state_2 = torch.zeros(batch_size, num_nodes * self._hidden_dim).type_as(
-                inputs
-            )
-            cell_state_2 = torch.zeros(batch_size, num_nodes * self._hidden_dim).type_as(
-                inputs
-            )
         output = None
         for i in range(seq_len):
             hidden_state = self.dropout_layer(hidden_state)
                                               
             output, hidden_state, cell_state = self.tgcn_cell(inputs[:, i, :], hidden_state, cell_state)
-            
-                                              
-            if self._layer_2:
-                output, hidden_state_2 , cell_state_2 = self.tgcn_cell_2(output, hidden_state_2, cell_state_2) 
+          
             output = output.reshape((batch_size, num_nodes, self._hidden_dim))
         return output
 
@@ -153,7 +142,6 @@ class TGCN_LSTM(nn.Module):
         parser.add_argument("--hidden_dim", type=int, default=64)
         parser.add_argument("--dropout", type=float, default=0)
         parser.add_argument("--cell_dim", type=int, default=64)
-        parser.add_argument("--layer_2", type=bool, default=False)
         return parser
 
     @property

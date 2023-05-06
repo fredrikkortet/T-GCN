@@ -16,6 +16,7 @@ class SpatioTemporalCSVDataModule(pl.LightningDataModule):
         split_ratio: float = 0.8,
         normalize: bool = True,
         self_attention: int = 0,
+        svd: int = 50,
         **kwargs
     ):
         super(SpatioTemporalCSVDataModule, self).__init__()
@@ -27,7 +28,8 @@ class SpatioTemporalCSVDataModule(pl.LightningDataModule):
         self.split_ratio = split_ratio
         self.normalize = normalize
         self.self_attention = self_attention
-        self._feat = utils.data.functions.load_features(self._feat_path)
+        self.svd = svd
+        self._feat = utils.data.functions.load_features(self._feat_path,self.svd)
         self._feat_max_val = np.max(self._feat)
         self._adj = utils.data.functions.load_adjacency_matrix(self._adj_path,self.self_attention)
 
@@ -40,6 +42,7 @@ class SpatioTemporalCSVDataModule(pl.LightningDataModule):
         parser.add_argument("--pre_len", type=int, default=3)
         parser.add_argument("--split_ratio", type=float, default=0.8)
         parser.add_argument("--normalize", type=bool, default=True)
+        parser.add_argument("--svd", type=int, default=50)
         return parser
 
     def setup(self, stage: str = None):

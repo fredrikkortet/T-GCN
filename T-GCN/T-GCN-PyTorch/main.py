@@ -30,11 +30,11 @@ def get_model(args, dm):
     if args.model_name == "LSTM":
         model = models.LSTM(input_dim=dm.adj.shape[0], hidden_dim=args.hidden_dim, cell_dim=args.cell_dim)
     if args.model_name == "TGCN_LSTM":
-        model = models.TGCN_LSTM(adj=dm.adj, hidden_dim=args.hidden_dim, dropout=args.dropout, cell_dim=args.cell_dim, layer_2=args.layer_2)
+        model = models.TGCN_LSTM(adj=dm.adj, hidden_dim=args.hidden_dim, dropout=args.dropout, cell_dim=args.cell_dim)
     if args.model_name == "TGCN_UGRNN":
-        model = models.TGCN(adj=dm.adj, hidden_dim=args.hidden_dim, dropout=args.dropout, layer_2=args.layer_2)
+        model = models.TGCN(adj=dm.adj, hidden_dim=args.hidden_dim, dropout=args.dropout)
     if args.model_name == "TGCN":
-        model = models.TGCN(adj=dm.adj, hidden_dim=args.hidden_dim, dropout=args.dropout, layer_2=args.layer_2, self_attention=args.self_attention)
+        model = models.TGCN(adj=dm.adj, hidden_dim=args.hidden_dim, dropout=args.dropout, self_attention=args.self_attention)
     return model
 
 

@@ -3,9 +3,10 @@ import pandas as pd
 import torch
 from utils.graph_conv_att import get_attention_adj_matrix
 
-def svd_low_rank_approximation(matrix):
+def svd_low_rank_approximation(matrix, k=50):
+    if k == 0:
+        return matrix
     # Perform SVD on the matrix
-    k=50
     u, s, v = np.linalg.svd(matrix)
     
     # Truncate the singular values and matrices to rank k
@@ -16,18 +17,18 @@ def svd_low_rank_approximation(matrix):
     
     return np.dot(u_k ,np.dot(np.diag(s_k) , v_k))
 
-def load_features(feat_path, dtype=np.float32):
+def load_features(feat_path,svd , dtype=np.float32):
     if feat_path.endswith(".npz"):
         data = np.load(feat_path)
         data = data.f.data
         df_data = pd.DataFrame(data[:,:,0])
         df_data = df_data.values.tolist()
         feat = np.array(df_data, dtype=dtype)
-        feat = svd_low_rank_approximation(feat)
+        feat = svd_low_rank_approximation(feat,svd)
         return feat
     feat_df = pd.read_csv(feat_path)
     feat = np.array(feat_df, dtype=dtype)
-    feat = svd_low_rank_approximation(feat)
+    feat = svd_low_rank_approximation(feat,svd)
     return feat
 
 

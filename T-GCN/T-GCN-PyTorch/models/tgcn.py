@@ -145,15 +145,14 @@ class TGCNCell(nn.Module):
 
 
 class TGCN(nn.Module):
-    def __init__(self, adj, hidden_dim: int,dropout: float, layer_2: int, **kwargs):
+    def __init__(self, adj, hidden_dim: int,dropout: float, **kwargs):
         super(TGCN, self).__init__()
         self._input_dim = adj.shape[0]
         self._hidden_dim = hidden_dim
-        self._layer_2 = layer_2
         self.register_buffer("adj", torch.FloatTensor(adj))
         self.tgcn_cell = TGCNCell(self.adj, self._input_dim, self._hidden_dim)
-        self.dropout = dropout
-        self.dropout_layer = nn.Dropout(self.dropout)
+        self._dropout = dropout
+        self.dropout_layer = nn.Dropout(self._dropout)
 
     def forward(self, inputs):
         batch_size, seq_len, num_nodes = inputs.shape
@@ -165,9 +164,6 @@ class TGCN(nn.Module):
         for i in range(seq_len):
             hidden_state = self.dropout_layer(hidden_state)
             output, hidden_state = self.tgcn_cell(inputs[:, i, :], hidden_state)
-            if self._layer_2==1:
-                output, hidden_state = self.tgcn_cell(inputs[:, i, :], hidden_state)
-            
             output = output.reshape((batch_size, num_nodes, self._hidden_dim))
         return output
 
@@ -177,9 +173,8 @@ class TGCN(nn.Module):
         parser.add_argument("--hidden_dim", type=int, default=64)
         parser.add_argument("--dropout", type=float, default=0)
         parser.add_argument("--cell_dim", type=int, default=64)
-        parser.add_argument("--layer_2", type=int, default=0)
         return parser
 
     @property
     def hyperparameters(self):
-        return {"input_dim": self._input_dim, "hidden_dim": self._hidden_dim}
+        return {"input_dim": self._input_dim, "hidden_dim": self._hidden_dim, "dropout": self._dropout}
