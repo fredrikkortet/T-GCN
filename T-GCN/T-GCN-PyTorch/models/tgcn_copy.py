@@ -3,18 +3,6 @@ import torch
 import torch.nn as nn
 from utils.graph_conv import calculate_laplacian_with_self_loop
 
-def svd_low_rank_approximation(matrix):
-    # Perform SVD on the matrix
-    k=-21
-    u, s, v = torch.svd(matrix)
-    
-    # Truncate the singular values and matrices to rank k
-    s_k = s[:k]
-    u_k = u[:, :k]
-    v_k = v[:, :k]
-    
-    
-    return u_k.mm(torch.diag(s_k)),v_k.t()
 
 class TGCNGraphConvolution(nn.Module):
     def __init__(self, adj, num_gru_units: int, output_dim: int, bias: float = 0.0):
@@ -26,9 +14,6 @@ class TGCNGraphConvolution(nn.Module):
         self.register_buffer(
                 "laplacian", calculate_laplacian_with_self_loop(torch.FloatTensor(adj))
             )
-        ## SVD
-        #self.u_k,self.v_k = svd_low_rank_approximation(self.laplacian)
-        
         self.weights = nn.Parameter(
             torch.FloatTensor(self._num_gru_units + 1, self._output_dim)
         )
@@ -58,8 +43,6 @@ class TGCNGraphConvolution(nn.Module):
         # A[x, h] (num_nodes, (num_gru_units + 1) * batch_size)
         
         a_times_concat = self.laplacian @ concatenation
-        ## SVD
-        #a_times_concat = self.u_k @ self.v_k @ concatenation
         
         # A[x, h] (num_nodes, num_gru_units + 1, batch_size)
         a_times_concat = a_times_concat.reshape(
@@ -142,8 +125,7 @@ class TGCN(nn.Module):
         for i in range(seq_len):
             hidden_state = self.dropout_layer(hidden_state)
             output, hidden_state = self.tgcn_cell(inputs[:, i, :], hidden_state)
-            if self._layer_2==1:
-                output, hidden_state = self.tgcn_cell(inputs[:, i, :], hidden_state)
+            
             
             output = output.reshape((batch_size, num_nodes, self._hidden_dim))
         return output

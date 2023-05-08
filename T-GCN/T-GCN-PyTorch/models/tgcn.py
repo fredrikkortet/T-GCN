@@ -3,19 +3,6 @@ import torch
 import torch.nn as nn
 from utils.graph_conv import calculate_laplacian_with_self_loop
 
-def svd_low_rank_approximation(matrix):
-    # Perform SVD on the matrix
-    k=-21
-    u, s, v = torch.svd(matrix)
-    
-    # Truncate the singular values and matrices to rank k
-    s_k = s[:k]
-    u_k = u[:, :k]
-    v_k = v[:, :k]
-    
-    
-    return u_k.mm(torch.diag(s_k))@v_k.t()
-
 class TGCNGraphConvolution(nn.Module):
     def __init__(self, adj, num_gru_units: int, output_dim: int, bias: float = 0.0):
         super(TGCNGraphConvolution, self).__init__()
@@ -26,9 +13,6 @@ class TGCNGraphConvolution(nn.Module):
         self.register_buffer(
                 "laplacian", calculate_laplacian_with_self_loop(torch.FloatTensor(adj))
             )
-        ## SVD
-        #self.u_k,self.v_k = svd_low_rank_approximation(self.laplacian)
-        
         self.weights = nn.Parameter(
             torch.FloatTensor(self._num_gru_units + 1, self._output_dim)
         )
@@ -41,8 +25,6 @@ class TGCNGraphConvolution(nn.Module):
         self.biases = nn.Parameter(torch.FloatTensor(self._output_dim))
         self.biases1 = nn.Parameter(torch.FloatTensor(self._output_dim))
         self.biases2 = nn.Parameter(torch.FloatTensor(self._output_dim))
-        self.lrelu = torch.nn.LeakyReLU(0.1)
-        self.relu = torch.nn.ReLU()
         self.reset_parameters()
 
     def reset_parameters(self):
@@ -74,9 +56,7 @@ class TGCNGraphConvolution(nn.Module):
         # A[x, h] (num_nodes, (num_gru_units + 1) * batch_size)
         
         a_times_concat = self.laplacian @ concatenation
-        ## SVD
-        #a_times_concat = self.u_k @ self.v_k @ concatenation
-        
+
         # A[x, h] (num_nodes, num_gru_units + 1, batch_size)
         a_times_concat = a_times_concat.reshape(
             (num_nodes, self._num_gru_units + 1, batch_size)
@@ -89,14 +69,14 @@ class TGCNGraphConvolution(nn.Module):
         )
         # A[x, h]W + b (batch_size * num_nodes, output_dim)
         outputs = a_times_concat @ self.weights + self.biases
-        #outputs = self.lrelu(outputs)
+
         outputs = outputs @ self.weights_pre1 + self.biases1
         outputs = outputs @ self.weights_pre2 + self.biases2
         # A[x, h]W + b (batch_size, num_nodes, output_dim)
         outputs = outputs.reshape((batch_size, num_nodes, self._output_dim))
         # A[x, h]W + b (batch_size, num_nodes * output_dim)
         outputs = outputs.reshape((batch_size, num_nodes * self._output_dim))
-        #outputs = self.relu(outputs)
+
         return outputs
 
     @property
@@ -114,7 +94,6 @@ class TGCNCell(nn.Module):
         self._input_dim = input_dim
         self._hidden_dim = hidden_dim
         self.register_buffer("adj", torch.FloatTensor(adj))
-        #changed 2 to 4
         self.graph_conv1 = TGCNGraphConvolution(
                 self.adj, self._hidden_dim, self._hidden_dim * 2, bias=1.0
         )
