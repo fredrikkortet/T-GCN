@@ -25,6 +25,8 @@ class TGCNGraphConvolution(nn.Module):
         self.biases = nn.Parameter(torch.FloatTensor(self._output_dim))
         self.biases1 = nn.Parameter(torch.FloatTensor(self._output_dim))
         self.biases2 = nn.Parameter(torch.FloatTensor(self._output_dim))
+        self.relu = nn.ReLU()
+        self.tanh = nn.Tanh()
         self.reset_parameters()
 
     def reset_parameters(self):
@@ -69,9 +71,10 @@ class TGCNGraphConvolution(nn.Module):
         )
         # A[x, h]W + b (batch_size * num_nodes, output_dim)
         outputs = a_times_concat @ self.weights + self.biases
-
+        outputs = self.tanh(outputs)
         outputs = outputs @ self.weights_pre1 + self.biases1
         outputs = outputs @ self.weights_pre2 + self.biases2
+        outputs = self.relu(outputs)
         # A[x, h]W + b (batch_size, num_nodes, output_dim)
         outputs = outputs.reshape((batch_size, num_nodes, self._output_dim))
         # A[x, h]W + b (batch_size, num_nodes * output_dim)
