@@ -32,7 +32,9 @@ def get_model(args, dm):
     if args.model_name == "TGCN_LSTM":
         model = models.TGCN_LSTM(adj=dm.adj, hidden_dim=args.hidden_dim, dropout=args.dropout, cell_dim=args.cell_dim)
     if args.model_name == "TGCN_UGRNN":
-        model = models.TGCN(adj=dm.adj, hidden_dim=args.hidden_dim, dropout=args.dropout)
+        model = models.TGCN_UGRNN(adj=dm.adj, hidden_dim=args.hidden_dim, dropout=args.dropout)
+    if args.model_name == "TGCN_ORG":
+        model = models.TGCN_ORG(adj=dm.adj, hidden_dim=args.hidden_dim, dropout=args.dropout)
     if args.model_name == "TGCN":
         model = models.TGCN(adj=dm.adj, hidden_dim=args.hidden_dim, dropout=args.dropout, self_attention=args.self_attention)
     return model
@@ -85,7 +87,7 @@ if __name__ == "__main__":
         "--model_name",
         type=str,
         help="The name of the model for spatiotemporal prediction",
-        choices=("GCN", "GRU", "TGCN","LSTM","TGCN_LSTM","TGCN_UGRNN"),
+        choices=("GCN", "GRU", "TGCN","LSTM","TGCN_LSTM","TGCN_UGRNN","TGCN_ORG"),
         default="GCN",
     )
     parser.add_argument(
